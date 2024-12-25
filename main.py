@@ -5,6 +5,7 @@ from asteroid import Asteroid
 from asteroidfield import AsteroidField
 from shot import Shot
 from score_manager import ScoreManager
+from starfield import Star, Starfield
 
 def main():
     pygame.init()
@@ -16,14 +17,19 @@ def main():
     drawable = pygame.sprite.Group()
     asteroids = pygame.sprite.Group()
     shots = pygame.sprite.Group()
+
     score_manager = ScoreManager()
+
 
     Asteroid.containers = (asteroids, updateable, drawable)
     Player.containers = (updateable, drawable)
     AsteroidField.containers = (updateable)
     Shot.containers = (shots, updateable, drawable)
+    Star.containers = (updateable, drawable)
+    
 
     asteroid_field = AsteroidField(score_manager)
+    starfield = Starfield(100)
     player = Player(SCREEN_WIDTH /2, SCREEN_HEIGHT /2, PLAYER_RADIUS)
 
 
