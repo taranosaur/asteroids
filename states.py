@@ -30,6 +30,7 @@ class GameplayState(State):
         self.drawable = pygame.sprite.Group()
         self.asteroids = pygame.sprite.Group()
         self.shots = pygame.sprite.Group()
+        self.explosions = []  # Store explosions
 
         # Set containers
         Asteroid.containers = (self.asteroids, self.updateable, self.drawable)
@@ -50,9 +51,15 @@ class GameplayState(State):
                 self.game.running = False
 
     def update(self, dt):
+        # Update starfield
         self.starfield.update(dt)
+
+        # Update all game objects
         for obj in self.updateable:
             obj.update(dt)
+
+        # Update explosions
+        self.update_explosions(dt)
 
         # Check for collisions
         for asteroid in self.asteroids:
@@ -63,19 +70,50 @@ class GameplayState(State):
         for asteroid in self.asteroids:
             for shot in self.shots:
                 if asteroid.collision(shot):
-                    asteroid.split()
+                    asteroid.split(self.explosions)  # Pass the explosions list
                     shot.kill()
 
     def render(self, screen):
+        # Clear screen
         screen.fill("black")
+
+        # Draw background starfield
         self.starfield.draw(screen)
+
+        # Draw all drawable game objects
         for obj in self.drawable:
             obj.draw(screen)
+
+        # Render explosions
+        self.render_explosions(screen)
 
         # Display score
         score_text = self.font.render(f"Score: {self.score_manager.get_score()}", True, "white")
         screen.blit(score_text, (10, 10))
+
+        # Update the display
         pygame.display.flip()
+
+    def update_explosions(self, dt):
+        """Update ongoing explosions."""
+        for explosion in self.explosions[:]:
+            explosion["elapsed_time"] += dt
+            if explosion["elapsed_time"] >= explosion["duration"]:
+                self.explosions.remove(explosion)  # Remove finished explosions
+            else:
+                explosion["radius"] = (
+                    explosion["elapsed_time"] / explosion["duration"]
+                ) * explosion["max_radius"]
+
+    def render_explosions(self, screen):
+        """Render all active explosions."""
+        for explosion in self.explosions:
+            alpha = int(255 * (1 - explosion["elapsed_time"] / explosion["duration"]))
+            color = (255, 100, 0)  # Bright orange
+            pygame.draw.circle(
+                screen, color, (int(explosion["position"].x), int(explosion["position"].y)), int(explosion["radius"])
+            )
+
 
 
 # Game Over State

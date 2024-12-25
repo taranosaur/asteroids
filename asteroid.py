@@ -21,11 +21,23 @@ class Asteroid(CircleShape):
     def update(self, dt):
         self.position += self.velocity * dt
     
-    def split (self):
+    def explode(self, explosions):
+        """Create an explosion effect at this asteroid's position."""
+        explosion = {
+            "position": self.position.copy(),
+            "radius": self.radius * 0.5,
+            "max_radius": self.radius,
+            "duration": 0.4,
+            "elapsed_time": 0,
+        }
+        explosions.append(explosion)
+
+    def split (self, explosions):
         
         self.score_manager.increment(10)
-
+        self.explode(explosions)
         self.kill()
+        
         if self.radius <= ASTEROID_MIN_RADIUS:
             return
         else:
@@ -39,3 +51,5 @@ class Asteroid(CircleShape):
 
             asteroid_one.velocity = vector1 * 1.2
             asteroid_two.velocity = vector2 * 1.2
+
+            return [asteroid_one, asteroid_two]
