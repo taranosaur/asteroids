@@ -16,7 +16,7 @@ class Star(pygame.sprite.Sprite):
 
     def update(self, *args):
         dt = args[0] if args else 1
-        print(f"Star updated: speed={self.speed}, dt={dt}")
+        
 
         # Ensure speed remains constant by only using self.speed as set during initialization
         self.rect.y += self.speed * dt
