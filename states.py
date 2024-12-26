@@ -6,6 +6,7 @@ from shot import Shot
 from score_manager import ScoreManager
 from starfield import Starfield
 from constants import *
+from particles import Particle
 
 # Base State Class
 class State:
@@ -31,6 +32,7 @@ class GameplayState(State):
         self.asteroids = pygame.sprite.Group()
         self.shots = pygame.sprite.Group()
         self.explosions = []  # Store explosions
+        self.particles = []
 
         # Set containers
         Asteroid.containers = (self.asteroids, self.updateable, self.drawable)
@@ -50,6 +52,14 @@ class GameplayState(State):
             if event.type == pygame.QUIT:
                 self.game.running = False
 
+
+    def update_particles(self, dt):
+        for particle in self.particles[:]:
+            particle.update(dt)
+            if particle.radius <= 0:  # Remove "dead" particles
+                self.particles.remove(particle)
+
+
     def update(self, dt):
         # Update starfield
         self.starfield.update(dt)
@@ -60,6 +70,7 @@ class GameplayState(State):
 
         # Update explosions
         self.update_explosions(dt)
+        self.update_particles(dt)
 
         # Check for collisions
         for asteroid in self.asteroids:
@@ -70,7 +81,7 @@ class GameplayState(State):
         for asteroid in self.asteroids:
             for shot in self.shots:
                 if asteroid.collision(shot):
-                    asteroid.split(self.explosions)  # Pass the explosions list
+                    asteroid.split(self.explosions, self.particles)  # Pass the explosions list
                     shot.kill()
 
     def render(self, screen):
@@ -86,6 +97,7 @@ class GameplayState(State):
 
         # Render explosions
         self.render_explosions(screen)
+        self.render_particles(screen)
 
         # Display score
         score_text = self.font.render(f"Score: {self.score_manager.get_score()}", True, "white")
@@ -113,7 +125,11 @@ class GameplayState(State):
             pygame.draw.circle(
                 screen, color, (int(explosion["position"].x), int(explosion["position"].y)), int(explosion["radius"])
             )
-
+    
+    def render_particles(self, screen):
+        """Render all active particles."""
+        for particle in self.particles:
+            particle.draw(screen)
 
 
 # Game Over State
