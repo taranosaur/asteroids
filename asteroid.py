@@ -42,7 +42,7 @@ class Asteroid(CircleShape):
 
     def split (self, explosions, particles):
         
-        self.score_manager.increment(10)
+        self.score_manager.add_score(10)
         self.explode(explosions, particles)
         self.kill()
         

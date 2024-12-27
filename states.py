@@ -75,7 +75,7 @@ class GameplayState(State):
         # Check for collisions
         for asteroid in self.asteroids:
             if self.player.collision(asteroid):
-                self.game.change_state(GameOverState(self.game, self.score_manager.get_score()))
+                self.game.change_state(GameOverState(self.game, self.score_manager.get_current_score()))
                 return
 
         for asteroid in self.asteroids:
@@ -100,7 +100,7 @@ class GameplayState(State):
         self.render_particles(screen)
 
         # Display score
-        score_text = self.font.render(f"Score: {self.score_manager.get_score()}", True, "white")
+        score_text = self.font.render(f"Score: {self.score_manager.get_current_score()}", True, "white")
         screen.blit(score_text, (10, 10))
 
         # Update the display
@@ -151,11 +151,72 @@ class GameOverState(State):
 
     def render(self, screen):
         screen.fill("black")
-        text = self.font.render("Game Over", True, (255, 0, 0))
-        score_text = self.font.render(f"Score: {self.score}", True, "white")
-        restart_text = self.font.render("Press R to Restart or Q to Quit", True, "white")
 
-        screen.blit(text, (SCREEN_WIDTH // 2 - text.get_width() // 2, 100))
+        # Game Over Title
+        title_text = self.font.render("Game Over", True, (255, 0, 0))
+        screen.blit(title_text, (SCREEN_WIDTH // 2 - title_text.get_width() // 2, 100))
+
+        # Current Score
+        score_text = self.font.render(f"Your Score: {self.score}", True, (255, 255, 255))
         screen.blit(score_text, (SCREEN_WIDTH // 2 - score_text.get_width() // 2, 200))
-        screen.blit(restart_text, (SCREEN_WIDTH // 2 - restart_text.get_width() // 2, 300))
+
+        # High Score
+        high_score = self.game.score_manager.get_high_score()
+        high_score_text = self.font.render(f"High Score: {high_score}", True, (255, 255, 255))
+        screen.blit(high_score_text, (SCREEN_WIDTH // 2 - high_score_text.get_width() // 2, 300))
+
+        # Restart Instructions
+        restart_text = self.font.render("Press R to Restart or Q to Quit", True, (255, 255, 255))
+        screen.blit(restart_text, (SCREEN_WIDTH // 2 - restart_text.get_width() // 2, 400))
+
         pygame.display.flip()
+
+
+# Main Menu State
+
+class MainMenuState(State):
+    def __init__(self, game):
+        super().__init__(game)
+        self.font = pygame.font.Font(pygame.font.get_default_font(), 48)
+        self.small_font = pygame.font.Font(pygame.font.get_default_font(), 24)
+        self.high_score = self.game.score_manager.get_high_score()  # Fetch high score
+
+    def handle_events(self, events):
+        for event in events:
+            if event.type == pygame.QUIT:
+                self.game.running = False
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RETURN:  # Start game
+                    self.game.change_state(GameplayState(self.game))
+                elif event.key == pygame.K_q:  # Quit
+                    self.game.running = False
+
+    def render(self, screen):
+        screen.fill("black")
+
+        # Title
+        title_text = self.font.render("Asteroid Blaster", True, (255, 255, 255))
+        screen.blit(title_text, (SCREEN_WIDTH // 2 - title_text.get_width() // 2, 100))
+
+        # High Score
+        high_score_text = self.small_font.render(f"High Score: {self.high_score}", True, (255, 255, 255))
+        screen.blit(high_score_text, (SCREEN_WIDTH // 2 - high_score_text.get_width() // 2, 200))
+
+        # Controls
+        controls = [
+            "Controls:",
+            "WASD to move",
+            "Spacebar to shoot",
+        ]
+        for i, line in enumerate(controls):
+            text = self.small_font.render(line, True, (255, 255, 255))
+            screen.blit(text, (SCREEN_WIDTH // 2 - text.get_width() // 2, 300 + i * 30))
+
+        # Instructions
+        start_text = self.small_font.render("Press ENTER to Start", True, (0, 255, 0))
+        quit_text = self.small_font.render("Press Q to Quit", True, (255, 0, 0))
+        screen.blit(start_text, (SCREEN_WIDTH // 2 - start_text.get_width() // 2, 450))
+        screen.blit(quit_text, (SCREEN_WIDTH // 2 - quit_text.get_width() // 2, 500))
+
+        pygame.display.flip()
+
